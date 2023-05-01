@@ -1,67 +1,57 @@
-var myMap = L.map("map", {
-  center: [37.7749, -122.4194],
-  zoom: 13
-});
 
-// Adding the tile layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+
+var myMap = L.map("map", {
+    center: [38, -111.8910],
+    zoom: 6
+  });
+  
+  // Adding the tile layer
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(myMap);
+    }).addTo(myMap);
+
+  function chooseCol(depth) {
+    if (depth >= 90) return "#FF0000";
+    else if (depth >= 70) return "#FF5733";
+    else if (depth >= 50) return "#FFA500";
+    else if (depth >= 30) return "#FFAE42";
+    else if (depth >= 10) return "#FFFF00";
+    else if (depth >= -10) return "#9ACD32";
+    else return "#008000";
+}
+
 
 var url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
-
-
-var legend = L.control({ position: "bottomright" });
-  legend.onAdd = function() {
-    var div = L.DomUtil.create("div", "info legend");
-    legend.addTo(myMap);
-  }
-
-function chooseColor(depth {
-    if (depth >=90) return "red";
-    else if (depth >=70) return "red orange";
-    else if (depth >=50) return "orange";
-    else if (depth >=30) return "yellow orange";
-    else if (depth >=10) return "yellow";
-    else if (depth >=-10) return "yellow green";
-    else return "black";
-})
-
 d3.json(url).then(function(response) {
-
-  console.log(response);
-
-  var heatArray=[]
-
-  for (var i = 0; i < response.length; i++) {
-    var location = response[i].features.geometry;
-
-    if (location) {
-        heatArray.push([location.coordinates[1], location.coordinates[0]]);
-      }
-    }
-    L.heatLayer(heatArray, {
-        style: function(feature) {
-            return {
-            color: "white",
-            fillColor: chooseColor(features.geometry.coordinates[2]),
+    L.geoJSON(response.features, {
+       // Create a circle marker for each feature
+        pointToLayer: function(feature,latlng) {
+        // Define the style of the circle marker
+        var markerStyle = {
+            color: "black",
+            // fillColor: "green",
+            fillColor: chooseCol(feature.geometry.coordinates[2]),
             fillOpacity: 0.5,
-            weight: 1.5
-            radius:features.properties.mag
-            };
+            weight: 1.5,
+            radius: feature.properties.mag*5
+        };
+
+        // Return the circle marker
+        return L.circleMarker(latlng, markerStyle).bindPopup(`<h1> ${feature.properties.type} Magnitude: ${feature.properties.mag}</h1> <hr> <h2>Location: ${feature.properties.title}</h2> <h3>  Depth: ${feature.geometry.coordinates[2]}</h3>`);
+    
         }
-    })
-
-    onEachFeature: function(feature, layer) {
-        layer.on({
-        click: function(event) {
-            layer = event.target;
-            layer.bindPopup("<h1>" + feature.properties.type+ "</h1> <hr> <h2>" + feature.properties.title + "</h2>");
-            }
-        })
-
-    }}).addTo(myMap);
+        }).addTo(myMap);
+        });
 
 
-
-
+    var legend = L.control({ position: "bottomright" });
+    legend.onAdd = function() {
+    var div = L.DomUtil.create("div", "info legend");
+    div.innerHTML += '<div><span class="dot" style="background-color: red;"></span> Depth >= 90</div>';
+    div.innerHTML += '<div><span class="dot" style="background-color: orange;"></span> 70 <= Depth < 90</div>';
+    div.innerHTML += '<div><span class="dot" style="background-color: yellow;"></span> 50 <= Depth < 70</div>';
+    div.innerHTML += '<div><span class="dot" style="background-color: yellowgreen;"></span> 30 <= Depth < 50</div>';
+    div.innerHTML += '<div><span class="dot" style="background-color: green;"></span> Depth < 30</div>';
+    return div;
+    };
+    legend.addTo(myMap);
