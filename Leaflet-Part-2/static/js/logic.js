@@ -95,7 +95,7 @@ d3.json(path).then(function(pl_data){
   var myMap = L.map("map", {
     center: [38, -111.8910],
     zoom: 6,
-    layers: [satellite, grayscale, earthquakes,tectonic_plates]
+    layers: [tectonic_plates,satellite, grayscale, earthquakes]
   });
 
     var legend = L.control({ position: "bottomright" });
