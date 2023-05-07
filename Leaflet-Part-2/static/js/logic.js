@@ -41,6 +41,7 @@ d3.json(path).then(function(pl_data){
   var tectonic_plates= L.geoJSON(pl_data,{
     style: {
       color: "yellow",
+      fillOpacity: 0,
       weight: 1
     },
     onEachFeature: function(feature) {
